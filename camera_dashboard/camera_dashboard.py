@@ -12,6 +12,7 @@ project = rf.workspace("cacaotrain").project("cacao_final")
 version = project.version(1)
 model = version.model
 
+# Detection counters
 counts = {"Criollo": 0, "Forastero": 0, "Trinitario": 0, "Unknown": 0}
 last_pred_time = 0
 last_predicted_frame = None
@@ -19,6 +20,7 @@ camera_ready = False
 frame_skip = 3
 prediction_interval = 0.5
 
+# Tkinter GUI
 root = tk.Tk()
 root.title("Cacao Detection")
 root.geometry("900x600")
@@ -61,7 +63,6 @@ def show_logo():
 def predict_and_update(frame):
     global last_pred_time, last_predicted_frame
     last_pred_time = time.time()
-
     resized_frame = cv2.resize(frame, (640, 480))
 
     try:
@@ -77,6 +78,8 @@ def predict_and_update(frame):
         x, y, w, h = map(int, [pred['x'], pred['y'], pred['width'], pred['height']])
         x1, y1 = max(x - w // 2, 0), max(y - h // 2, 0)
         x2, y2 = min(x + w // 2, frame.shape[1]), min(y + h // 2, frame.shape[0])
+        crop = frame[y1:y2, x1:x2]
+
         label = pred['class']
         counts[label] += 1
 
@@ -117,15 +120,17 @@ def update_frame():
 
     root.after(50, update_frame)
 
-cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-
-show_logo()
-root.update()
-
-# ✅ This is the new public function that main.py will call
+# ✅ This is the callable function used by main.py
 def launch_dashboard():
+    global cap
+    cap = cv2.VideoCapture(0)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+
+    show_logo()
+    root.update()
     update_frame()
     root.mainloop()
 
+    cap.release()
+    cv2.destroyAllWindows()

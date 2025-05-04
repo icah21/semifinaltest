@@ -5,11 +5,11 @@ import RPi.GPIO as GPIO
 from ir_sensor import IRSensor
 from stepper_motor import StepperMotor
 from servo import ServoController
-import camera_dashboard  # Will use launch_dashboard() from this
+import camera_dashboard  # This now has a callable function
 
 # Adjusted GPIO pin assignments to avoid conflicts
 IR_PIN = 17
-STEPPER_PINS = [4, 5, 6, 13]  # Changed to prevent collision with Servo (18)
+STEPPER_PINS = [4, 5, 6, 13]  # Avoid conflict with Servo (18)
 SERVO_PIN = 18
 
 # Initialize components
