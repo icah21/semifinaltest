@@ -5,11 +5,11 @@ import RPi.GPIO as GPIO
 from ir_sensor import IRSensor
 from stepper_motor import StepperMotor
 from servo import ServoController
-import camera_dashboard  # This runs the GUI in a separate thread already
+import camera_dashboard  # This now exposes launch_dashboard() and counts
 
 # Adjusted GPIO pin assignments to avoid conflicts
 IR_PIN = 17
-STEPPER_PINS = [4, 5, 6, 13]  # Changed to prevent collision with Servo (18)
+STEPPER_PINS = [4, 5, 6, 13]
 SERVO_PIN = 18
 
 # Initialize components
@@ -29,7 +29,6 @@ def monitor_ir_sensor():
     while True:
         if ir_sensor.is_object_detected():
             print("[IR] Object detected.")
-            # Rotate to camera position (90 degrees)
             state["current_angle"] = stepper.go_to_angle(state["current_angle"], 90)
             print("[Stepper] Reached 90 degrees. Waiting for camera detection.")
             break
@@ -46,7 +45,6 @@ def wait_for_camera_and_decide():
         time.sleep(0.5)
 
 def control_servo_based_on_detection():
-    # Wait until camera finishes detection
     while not state["camera_done"]:
         time.sleep(0.1)
 
@@ -54,7 +52,6 @@ def control_servo_based_on_detection():
     state["current_angle"] = stepper.go_to_angle(state["current_angle"], 180)
     print("[Servo] Acting based on detection result.")
 
-    # Act on detection
     result = state["detection_result"]
     if result == "Criollo":
         servo.move_to_variety("Criollo")
@@ -78,8 +75,8 @@ def cleanup():
 
 if __name__ == "__main__":
     try:
-        # Start camera dashboard in its own thread
-        cam_thread = threading.Thread(target=camera_dashboard.root.mainloop, daemon=True)
+        # Run camera GUI in a separate thread
+        cam_thread = threading.Thread(target=camera_dashboard.launch_dashboard, daemon=True)
         cam_thread.start()
 
         ir_thread = threading.Thread(target=monitor_ir_sensor)
@@ -87,7 +84,7 @@ if __name__ == "__main__":
         servo_thread = threading.Thread(target=control_servo_based_on_detection)
 
         ir_thread.start()
-        ir_thread.join()  # Wait for IR detection to finish
+        ir_thread.join()
 
         detect_thread.start()
         servo_thread.start()

@@ -139,9 +139,9 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 show_logo()
 root.update()
 
-# Start UI loop
-update_frame()
-root.mainloop()
+def launch_dashboard():
+    update_frame()
+    root.mainloop()
 
 cap.release()
 cv2.destroyAllWindows()
